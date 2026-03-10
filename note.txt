@@ -1,0 +1,77 @@
+2️⃣ Luo tiedosto src/services/persons.js
+import axios from "axios"
+
+const baseUrl = "http://localhost:3001/persons"
+
+const getAll = () => {
+  return axios.get(baseUrl)
+}
+
+const create = (newObject) => {
+  return axios.post(baseUrl, newObject)
+}
+
+export default {
+  getAll,
+  create
+}
+
+Tämä moduuli hoitaa kaikki API-kutsut.
+
+3️⃣ Muokkaa App.js
+
+Importoi service:
+
+import personService from "./services/persons"
+Hae data palvelimelta
+
+Muuta useEffect:
+
+useEffect(() => {
+  personService
+    .getAll()
+    .then(response => {
+      setPersons(response.data)
+    })
+}, [])
+Lisää uusi henkilö palvelimelle
+
+Muuta addPerson:
+
+const addPerson = (event) => {
+  event.preventDefault()
+
+  const personObject = {
+    name: newName,
+    number: newNumber
+  }
+
+  personService
+    .create(personObject)
+    .then(response => {
+      setPersons(persons.concat(response.data))
+      setNewName("")
+      setNewNumber("")
+    })
+}
+4️⃣ Lopputulos
+
+App.js
+
+ei sisällä axios-kutsuja
+
+käyttää personService
+
+persons.js
+
+hoitaa kaikki palvelinpyynnöt
+
+Tämä on juuri se arkkitehtuuri, jota FullStackOpen käyttää.
+
+✅ Nyt sovellus:
+
+hakee henkilöt palvelimelta
+
+lisää uudet henkilöt palvelimelle
+
+kaikki API-kutsut ovat services/persons.js tiedostossa
