@@ -25,6 +25,5 @@
       "number": "45462614616",
       "id": "2a44"
     }
-  ],
-  "$schema": "./node_modules/json-server/schema.json"
+  ]
 }
