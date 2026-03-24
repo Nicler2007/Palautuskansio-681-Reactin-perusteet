@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
-import Filter from "./filter"
-import PersonForm from "./personform"
-import Persons from "./persons"
+import Filter from "./components/Filter"
+import PersonForm from "./components/PersonForm"
+import Persons from "./components/Persons"
 import personService from "./services/Persons"
 
 const App = () => {
@@ -11,28 +11,42 @@ const App = () => {
   const [filter, setFilter] = useState("")
 
   useEffect(() => {
-  personService
-    .getAll()
-    .then(response => {
-      setPersons(response.data)
-    })
+  personService.getAll().then(data => {
+    setPersons(data)
+  })
 }, [])
 
   const addPerson = (event) => {
   event.preventDefault()
+
+  const existingPerson = persons.find(p => p.name === newName)
 
   const personObject = {
     name: newName,
     number: newNumber
   }
 
-  personService
-    .create(personObject)
-    .then(response => {
-      setPersons(persons.concat(response.data))
-      setNewName("")
-      setNewNumber("")
-    })
+  if (existingPerson) {
+    if (window.confirm(`${newName} is already added. Replace the old number?`)) {
+      personService
+        .update(existingPerson.id, personObject)
+        .then(updatedPerson => {
+          setPersons(persons.map(p =>
+            p.id !== existingPerson.id ? p : updatedPerson
+          ))
+          setNewName("")
+          setNewNumber("")
+        })
+    }
+  } else {
+    personService
+      .create(personObject)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName("")
+        setNewNumber("")
+      })
+  }
 }
 
 
