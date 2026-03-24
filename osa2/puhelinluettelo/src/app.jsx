@@ -2,75 +2,81 @@ import { useState, useEffect } from "react"
 import Filter from "./components/Filter"
 import PersonForm from "./components/PersonForm"
 import Persons from "./components/Persons"
-import personService from "./services/Persons"
+import Notification from "./components/Notification"
+import personService from "./services/persons"
 
 const App = () => {
   const [persons, setPersons] = useState([])
   const [newName, setNewName] = useState("")
   const [newNumber, setNewNumber] = useState("")
   const [filter, setFilter] = useState("")
+  const [notification, setNotification] = useState(null)
 
   useEffect(() => {
-  personService.getAll().then(data => {
-    setPersons(data)
-  })
-}, [])
+    personService.getAll().then(data => {
+      setPersons(data)
+    })
+  }, [])
 
-  const addPerson = (event) => {
-  event.preventDefault()
-
-  const existingPerson = persons.find(p => p.name === newName)
-
-  const personObject = {
-    name: newName,
-    number: newNumber
+  const showNotification = (message) => {
+    setNotification(message)
+    setTimeout(() => {
+      setNotification(null)
+    }, 3000)
   }
 
-  if (existingPerson) {
-    if (window.confirm(`${newName} is already added. Replace the old number?`)) {
+  const addPerson = (event) => {
+    event.preventDefault()
+
+    const existingPerson = persons.find(
+      p => p.name.toLowerCase() === newName.toLowerCase()
+    )
+
+    const personObject = {
+      name: newName,
+      number: newNumber
+    }
+
+    if (existingPerson) {
+      if (window.confirm(`${newName} is already added. Replace the old number?`)) {
+        personService
+          .update(existingPerson.id, personObject)
+          .then(updatedPerson => {
+            setPersons(persons.map(p =>
+              p.id !== existingPerson.id ? p : updatedPerson
+            ))
+            showNotification(`Updated ${updatedPerson.name}`)
+            setNewName("")
+            setNewNumber("")
+          })
+      }
+    } else {
       personService
-        .update(existingPerson.id, personObject)
-        .then(updatedPerson => {
-          setPersons(persons.map(p =>
-            p.id !== existingPerson.id ? p : updatedPerson
-          ))
+        .create(personObject)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          showNotification(`Added ${returnedPerson.name}`)
           setNewName("")
           setNewNumber("")
         })
     }
-  } else {
-    personService
-      .create(personObject)
-      .then(returnedPerson => {
-        setPersons(persons.concat(returnedPerson))
-        setNewName("")
-        setNewNumber("")
-      })
   }
-}
-
 
   const removePerson = (id) => {
-  const person = persons.find(p => p.id === id)
+    const person = persons.find(p => p.id === id)
 
-  if (window.confirm(`Delete ${person.name}?`)) {
-    personService
-      .remove(id)
-      .then(() => {
+    if (window.confirm(`Delete ${person.name}?`)) {
+      personService.remove(id).then(() => {
         setPersons(persons.filter(p => p.id !== id))
+        showNotification(`Deleted ${person.name}`)
       })
+    }
   }
-}
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value)
-  }
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value)
-  }
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value)
-  }
+  const handleNameChange = (event) => setNewName(event.target.value)
+  const handleNumberChange = (event) => setNewNumber(event.target.value)
+  const handleFilterChange = (event) => setFilter(event.target.value)
+
   const personsToShow = persons.filter(person =>
     person.name.toLowerCase().includes(filter.toLowerCase())
   )
@@ -78,6 +84,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+
+      <Notification message={notification} />
 
       <Filter
         filter={filter}
@@ -100,7 +108,6 @@ const App = () => {
         persons={personsToShow}
         removePerson={removePerson}
       />
-
     </div>
   )
 }
