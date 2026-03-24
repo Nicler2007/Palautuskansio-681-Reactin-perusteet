@@ -11,6 +11,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState("")
   const [filter, setFilter] = useState("")
   const [notification, setNotification] = useState(null)
+  const [notificationType, setNotificationType] = useState("success")
 
   useEffect(() => {
     personService.getAll().then(data => {
@@ -18,11 +19,10 @@ const App = () => {
     })
   }, [])
 
-  const showNotification = (message) => {
+  const showNotification = (message, type = "success") => {
     setNotification(message)
-    setTimeout(() => {
-      setNotification(null)
-    }, 3000)
+    setNotificationType(type)
+    setTimeout(() => setNotification(null), 3000)
   }
 
   const addPerson = (event) => {
@@ -49,6 +49,13 @@ const App = () => {
             setNewName("")
             setNewNumber("")
           })
+          .catch(() => {
+            showNotification(
+              `Information of ${existingPerson.name} has already been removed from server`,
+              "error"
+            )
+            setPersons(persons.filter(p => p.id !== existingPerson.id))
+          })
       }
     } else {
       personService
@@ -59,6 +66,9 @@ const App = () => {
           setNewName("")
           setNewNumber("")
         })
+        .catch(() => {
+          showNotification("Failed to add person", "error")
+        })
     }
   }
 
@@ -66,10 +76,19 @@ const App = () => {
     const person = persons.find(p => p.id === id)
 
     if (window.confirm(`Delete ${person.name}?`)) {
-      personService.remove(id).then(() => {
-        setPersons(persons.filter(p => p.id !== id))
-        showNotification(`Deleted ${person.name}`)
-      })
+      personService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(p => p.id !== id))
+          showNotification(`Deleted ${person.name}`)
+        })
+        .catch(() => {
+          showNotification(
+            `Information of ${person.name} has already been removed from server`,
+            "error"
+          )
+          setPersons(persons.filter(p => p.id !== id))
+        })
     }
   }
 
@@ -85,12 +104,9 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
-      <Notification message={notification} />
+      <Notification message={notification} type={notificationType} />
 
-      <Filter
-        filter={filter}
-        handleFilterChange={handleFilterChange}
-      />
+      <Filter filter={filter} handleFilterChange={handleFilterChange} />
 
       <h3>Add a new</h3>
 
@@ -104,10 +120,7 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Persons
-        persons={personsToShow}
-        removePerson={removePerson}
-      />
+      <Persons persons={personsToShow} removePerson={removePerson} />
     </div>
   )
 }
