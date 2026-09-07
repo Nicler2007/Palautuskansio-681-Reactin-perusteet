@@ -6,7 +6,6 @@ import Countries from "./components/Countries"
 const App = () => {
   const [countries, setCountries] = useState([])
   const [search, setSearch] = useState("")
-  const [selectedCountry, setSelectedCountry] = useState(null)
 
   useEffect(() => {
     axios
@@ -18,24 +17,19 @@ const App = () => {
 
   const handleSearchChange = (event) => {
     setSearch(event.target.value)
-    setSelectedCountry(null) // reset kun kirjoitetaan
   }
 
   const filteredCountries = countries.filter(country =>
     country.name.common.toLowerCase().includes(search.toLowerCase())
   )
 
-  const countriesToShow = selectedCountry
-    ? [selectedCountry]
-    : filteredCountries
-
   return (
     <div>
       <Filter value={search} onChange={handleSearchChange} />
 
       <Countries
-        countries={countriesToShow}
-        setSelectedCountry={setSelectedCountry}
+        countries={filteredCountries}
+        setSearch={setSearch}
       />
     </div>
   )

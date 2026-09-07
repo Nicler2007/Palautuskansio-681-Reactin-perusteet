@@ -1,6 +1,6 @@
 import Country from "./Country"
 
-const Countries = ({ countries, setSelectedCountry }) => {
+const Countries = ({ countries, setSearch }) => {
   if (countries.length > 10) {
     return <p>Too many matches, specify another filter</p>
   }
@@ -11,7 +11,7 @@ const Countries = ({ countries, setSelectedCountry }) => {
         {countries.map(country => (
           <li key={country.cca3}>
             {country.name.common}
-            <button onClick={() => setSelectedCountry(country)}>
+            <button onClick={() => setSearch(country.name.common)}>
               show
             </button>
           </li>
